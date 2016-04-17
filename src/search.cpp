@@ -35,7 +35,7 @@ Search::Search(BuyoutManager &bo_manager, const std::string &caption,
     caption_(caption),
     view_(view),
     bo_manager_(bo_manager),
-    model_(std::make_unique<ItemsModel>(bo_manager, *this))
+    model_(bo_manager, *this)
 {
     using move_only = std::unique_ptr<Column>;
     move_only init[] = {
@@ -119,7 +119,7 @@ void Search::FilterItems(const Items &items) {
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
 
-    model_->sort();
+    model_.sort();
 }
 
 QString Search::GetCaption() {
@@ -138,14 +138,14 @@ int Search::GetItemsCount() {
 void Search::Activate(const Items &items) {
     FromForm();
     FilterItems(items);
-    view_->setModel(model_.get());
+    view_->setModel(&model_);
 }
 
 void Search::SaveViewProperties() {
     expanded_property_.clear();
 
-    for( int row = 0; row < model_->rowCount(); ++row ) {
-        QModelIndex index = model_->index( row, 0, QModelIndex());
+    for( int row = 0; row < model_.rowCount(); ++row ) {
+        QModelIndex index = model_.index( row, 0, QModelIndex());
         if (view_->isExpanded(index)) {
             expanded_property_.insert(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]")));
         }
@@ -154,8 +154,8 @@ void Search::SaveViewProperties() {
 
 void Search::RestoreViewProperties() {
     if (!expanded_property_.empty()) {
-        for( int row = 0; row < model_->rowCount(); ++row ) {
-            QModelIndex index = model_->index( row, 0, QModelIndex());
+        for( int row = 0; row < model_.rowCount(); ++row ) {
+            QModelIndex index = model_.index( row, 0, QModelIndex());
             if (expanded_property_.contains(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]"))))
                 view_->expand(index);
         }

@@ -24,6 +24,7 @@
 #include <QSet>
 
 #include "item.h"
+#include "items_model.h"
 #include "column.h"
 #include "bucket.h"
 
@@ -63,7 +64,7 @@ private:
     Items items_;
     QTreeView *view_{nullptr};
     BuyoutManager &bo_manager_;
-    std::unique_ptr<ItemsModel> model_;
+    ItemsModel model_;
     std::vector<std::unique_ptr<Bucket>> buckets_;
     uint unfiltered_item_count_{0};
     uint filtered_item_count_total_{0};

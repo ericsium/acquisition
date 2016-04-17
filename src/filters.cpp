@@ -42,7 +42,7 @@ FilterData::FilterData(Filter *filter):
     filter_(filter)
 {}
 
-bool FilterData::Matches(const std::shared_ptr<Item> item) {
+bool FilterData::Matches(const std::shared_ptr<Item> &item) {
     return filter_->Matches(item, this);
 }
 
