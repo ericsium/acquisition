@@ -53,7 +53,7 @@ int ItemsModel::rowCount(const QModelIndex &parent) const {
         return search_.buckets().size();
     // Bucket, contains elements
     if (parent.isValid() && !parent.parent().isValid()) {
-        return search_.buckets()[parent.row()]->items().size();
+        return search_.bucket(parent.row())->items().size();
     }
     // Element, contains nothing
     return 0;
@@ -102,7 +102,7 @@ QVariant ItemsModel::data(const QModelIndex &index, int role) const {
         return QVariant();
     }
     auto &column = search_.columns()[index.column()];
-    const Item &item = *search_.buckets()[index.parent().row()]->items()[index.row()];
+    const Item &item = *search_.bucket(index.parent().row())->item(index.row());
     if (role == Qt::DisplayRole)
         return column->value(item);
     else if (role == Qt::ForegroundRole)

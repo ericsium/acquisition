@@ -61,6 +61,7 @@ public:
     ItemLocation GetTabLocation(const QModelIndex & index) const;
     void SetViewMode(ViewMode mode);
     int GetViewMode() { return current_mode_; };
+    const std::unique_ptr<Bucket> &bucket(int row) const;
 private:
     void UpdateItemCounts(const Items &items);
 

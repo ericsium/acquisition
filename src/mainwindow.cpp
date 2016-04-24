@@ -340,7 +340,7 @@ void MainWindow::OnBuyoutChange() {
         if (!index.parent().isValid()) {
             bo_manager.SetTab(tab, bo);
         } else {
-            auto &item = current_search_->buckets()[index.parent().row()]->items()[index.row()];
+            auto &item = current_search_->bucket(index.parent().row())->item(index.row());
             // Don't allow users to manually update locked items (game priced per item in note section)
             if (bo_manager.Get(*item).IsGameSet())
                 continue;
@@ -477,10 +477,10 @@ void MainWindow::OnTreeChange(const QModelIndex &current, const QModelIndex & /*
     if (!current.parent().isValid()) {
         // clicked on a bucket
         current_item_ = nullptr;
-        current_bucket_ = *current_search_->buckets()[current.row()];
+        current_bucket_ = *current_search_->bucket(current.row());
         UpdateCurrentBucket();
     } else {
-        current_item_ = current_search_->buckets()[current.parent().row()]->items()[current.row()];
+        current_item_ = current_search_->bucket(current.parent().row())->item(current.row());
         delayed_update_current_item_.start(100);
     }
     UpdateCurrentBuyout();

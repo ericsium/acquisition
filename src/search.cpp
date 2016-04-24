@@ -29,6 +29,7 @@
 #include "filters.h"
 #include "porting.h"
 #include "QsLog.h"
+#include <QMessageBox>
 
 Search::Search(BuyoutManager &bo_manager, const std::string &caption,
                const std::vector<std::unique_ptr<Filter>> &filters, QTreeView *view) :
@@ -86,8 +87,21 @@ const std::vector<std::unique_ptr<Bucket> > &Search::buckets() const {
     if (current_mode_ == ByTab) {
         return buckets_;
     } else {
-        return {bucket_};
+        return bucket_;
     }
+}
+
+const std::unique_ptr<Bucket> &Search::bucket(int row) const {
+    auto const &active_buckets = (current_mode_ == ByTab) ? buckets_:bucket_;
+
+    if (row < 0 || row >= active_buckets.size()) {
+        QMessageBox::critical(0, "Fatal Error", QString("Bucket row out of bounds: ") +
+                              QString::number(row) + " bucket size: " + QString::number(active_buckets.size()) +
+                              " mode:" + QString::number(current_mode_) +
+                              ". Program will abort.");
+        abort();
+    }
+    return active_buckets[row];
 }
 
 void Search::FilterItems(const Items &items) {
@@ -145,10 +159,10 @@ ItemLocation Search::GetTabLocation(const QModelIndex & index) const {
     if (index.internalId() > 0) {
         // If index represents an item, get location from item as view may be on 'item' view
         // where bucket location doesn't match items location
-        return buckets()[index.parent().row()]->items()[index.row()]->location();
+        return bucket(index.parent().row())->item(index.row())->location();
     } else {
         // Otherwise index represents a tab already, get location from there
-        return buckets()[index.row()]->location();
+        return bucket(index.row())->location();
     }
 }
 
