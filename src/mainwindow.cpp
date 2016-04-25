@@ -457,13 +457,13 @@ void MainWindow::OnSearchFormChange() {
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
 
     ui->treeView->reset();
-    if (current_search_->IsAnyFilterActive()) {
+    if (current_search_->IsAnyFilterActive() || current_search_->GetViewMode() == Search::ByItem) {
         // Policy is to expand all tabs when any search fields are populated
+        // Also expand by default if we're in Item view mode
         ExpandCollapse(TreeState::kExpand);
     } else {
       // Restore view properties if no search fields are populated AND current mode is tab mode
-        if (current_search_->GetViewMode() == Search::ByTab)
-            current_search_->RestoreViewProperties();
+        current_search_->RestoreViewProperties();
     }
     ResizeTreeColumns();
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
