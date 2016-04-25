@@ -78,6 +78,9 @@ QVariant ItemsModel::headerData(int section, Qt::Orientation /* orientation */, 
 
 QVariant ItemsModel::data(const QModelIndex &index, int role) const {
     // Bucket title
+    if (!index.isValid())
+        return QVariant();
+
     if (index.internalId() == 0) {
         if (index.column() > 0)
             return QVariant();
@@ -124,6 +127,9 @@ Qt::ItemFlags ItemsModel::flags(const QModelIndex &index) const
 }
 
 bool ItemsModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+    if (!index.isValid())
+        return false;
+
     if (role == Qt::CheckStateRole) {
         const ItemLocation &location = search_.GetTabLocation(index);
         bo_manager_.SetRefreshChecked(location, value.toBool());
@@ -133,7 +139,8 @@ bool ItemsModel::setData(const QModelIndex &index, const QVariant &value, int ro
         // the same name as the current checked tab so the 'check' is properly updated in
         // the layout
         std::string target_hash = location.GetUniqueHash();
-        for (int i = 0; i < rowCount(); ++i) {
+        auto row_count = rowCount();
+        for (int i = 0; i < row_count; ++i) {
             auto match_index = this->index(i);
             if (search_.GetTabLocation(match_index).GetUniqueHash() == target_hash)
                 emit dataChanged(match_index,match_index);
@@ -163,16 +170,25 @@ void ItemsModel::sort()
 
 QModelIndex ItemsModel::parent(const QModelIndex &index) const {
     // bucket
-    if (index.internalId() == 0)
+    if (!index.isValid() || index.internalId() == 0) {
         return QModelIndex();
+    }
     // item
     return createIndex(index.internalId() - 1, 0, static_cast<quintptr>(0));
 }
 
 QModelIndex ItemsModel::index(int row, int column, const QModelIndex &parent) const {
     // bucket
-    if (!parent.isValid())
+    if (row < 0 || row >= rowCount(parent) || column < 0 || column >= columnCount(parent)) {
+        QLOG_WARN() << "Unexpected Index request: row(" << row << ") maxrow(" << rowCount(parent)
+                       << ") col(" << column << ") maxcol(" << columnCount(parent);
+        return QModelIndex();
+    }
+
+    if (parent.isValid()) {
+        // item, we pass parent's (bucket's) row through ID parameter
+        return createIndex(row, column, static_cast<quintptr>(parent.row() + 1));
+    } else {
         return createIndex(row, column, static_cast<quintptr>(0));
-    // item, we pass parent's (bucket's) row through ID parameter
-    return createIndex(row, column, static_cast<quintptr>(parent.row() + 1));
+    }
 }

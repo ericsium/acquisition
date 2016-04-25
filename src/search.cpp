@@ -169,9 +169,14 @@ ItemLocation Search::GetTabLocation(const QModelIndex & index) const {
 void Search::SetViewMode(ViewMode mode)
 {
     if (mode != current_mode_) {
+        if (mode == ByItem)
+            SaveViewProperties();
+
         current_mode_ = mode;
         model_->sort();
-        view_->setExpanded(model_->index(0,0), current_mode_==ByItem);
+
+        if (mode == ByTab)
+            RestoreViewProperties();
     }
 }
 
@@ -190,21 +195,26 @@ void Search::Activate(const Items &items) {
 
 void Search::SaveViewProperties() {
     expanded_property_.clear();
-
-    for( int row = 0; row < model_->rowCount(); ++row ) {
+    auto rowCount = model_->rowCount();
+    for( int row = 0; row < rowCount; ++row ) {
         QModelIndex index = model_->index( row, 0, QModelIndex());
-        if (view_->isExpanded(index)) {
-            expanded_property_.insert(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]")));
+        if (index.isValid() && view_->isExpanded(index)) {
+            expanded_property_.insert(bucket(row)->location().GetHeader());
         }
     }
 }
 
 void Search::RestoreViewProperties() {
     if (!expanded_property_.empty()) {
-        for( int row = 0; row < model_->rowCount(); ++row ) {
+        auto rowCount = model_->rowCount();
+        for( int row = 0; row < rowCount; ++row ) {
             QModelIndex index = model_->index( row, 0, QModelIndex());
-            if (expanded_property_.contains(index.data(Qt::DisplayRole).toString().remove(QRegularExpression("\\s*\\[.*?\\]"))))
+            // Block signals else columns will be resized on every expand which can be super slow.
+            view_->blockSignals(true);
+            if (expanded_property_.count(bucket(row)->location().GetHeader())) {
                 view_->expand(index);
+            }
+            view_->blockSignals(false);
         }
     }
 }

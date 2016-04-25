@@ -151,8 +151,9 @@ void MainWindow::InitializeUi() {
 
     connect(ui->viewComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [&](int mode) {
         current_search_->SetViewMode(static_cast<Search::ViewMode>(mode));
-        if (mode == Search::ByTab)
+        if (mode == Search::ByItem)
             OnExpandAll();
+        ResizeTreeColumns();
     });
 
     ui->buyoutTypeComboBox->setEnabled(false);
@@ -441,27 +442,30 @@ void MainWindow::OnSearchFormChange() {
     app_->buyout_manager().Save();
 
     // Save view properties if no search fields are populated
-    if (previous_search_ && !previous_search_->IsAnyFilterActive())
+    // AND we're viewing in Tab mode
+    if (previous_search_ && !previous_search_->IsAnyFilterActive()
+            && previous_search_->GetViewMode() == Search::ByTab)
         previous_search_->SaveViewProperties();
 
     previous_search_ = current_search_;
 
     current_search_->Activate(app_->items_manager().items());
+
     ui->viewComboBox->setCurrentIndex(static_cast<int>(current_search_->GetViewMode()));
 
     connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)),
             this, SLOT(OnTreeChange(const QModelIndex&, const QModelIndex&)));
-    ui->treeView->reset();
 
+    ui->treeView->reset();
     if (current_search_->IsAnyFilterActive()) {
         // Policy is to expand all tabs when any search fields are populated
         ExpandCollapse(TreeState::kExpand);
     } else {
-      // Restore view properties if no search fields are populated
-       current_search_->RestoreViewProperties();
+      // Restore view properties if no search fields are populated AND current mode is tab mode
+        if (current_search_->GetViewMode() == Search::ByTab)
+            current_search_->RestoreViewProperties();
     }
     ResizeTreeColumns();
-
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
 }
 
