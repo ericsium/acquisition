@@ -26,6 +26,7 @@
 #include "item.h"
 #include "column.h"
 #include "bucket.h"
+#include "util.h"
 
 class BuyoutManager;
 class Filter;
@@ -62,6 +63,7 @@ public:
     void SetViewMode(ViewMode mode);
     int GetViewMode() { return current_mode_; };
     const std::unique_ptr<Bucket> &bucket(int row) const;
+    void SetRefreshReason(RefreshReason::Type reason) { refresh_reason_ = reason;};
 private:
     void UpdateItemCounts(const Items &items);
 
@@ -78,4 +80,5 @@ private:
     uint filtered_item_count_total_{0};
     std::set<std::string> expanded_property_;
     ViewMode current_mode_{ByTab};
+    RefreshReason::Type refresh_reason_{RefreshReason::Unknown};
 };

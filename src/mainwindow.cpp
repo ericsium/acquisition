@@ -148,12 +148,13 @@ void MainWindow::InitializeUi() {
     connect(ui->buyoutValueLineEdit, SIGNAL(textEdited(QString)), this, SLOT(OnBuyoutChange()));
 
     ui->viewComboBox->addItems({"By Tab", "By Item"});
-
-    connect(ui->viewComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [&](int mode) {
+    connect(ui->viewComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), [&](int mode) {
         current_search_->SetViewMode(static_cast<Search::ViewMode>(mode));
-        if (mode == Search::ByItem)
+        if (mode == Search::ByItem) {
             OnExpandAll();
-        ResizeTreeColumns();
+        } else {
+            ResizeTreeColumns();
+        }
     });
 
     ui->buyoutTypeComboBox->setEnabled(false);
@@ -303,6 +304,7 @@ void MainWindow::CheckSelected(bool value) {
 }
 
 void MainWindow::ResizeTreeColumns() {
+    QLOG_DEBUG() << "ResizeTreeColumns";
     for (int i = 0; i < ui->treeView->header()->count(); ++i)
         ui->treeView->resizeColumnToContents(i);
 }
@@ -439,6 +441,11 @@ void MainWindow::SetCurrentSearch(Search *search) {
 }
 
 void MainWindow::OnSearchFormChange() {
+    current_search_->SetRefreshReason(RefreshReason::SearchFormChanged);
+    ModelViewRefresh();
+}
+
+void MainWindow::ModelViewRefresh() {
     app_->buyout_manager().Save();
 
     // Save view properties if no search fields are populated
@@ -464,8 +471,8 @@ void MainWindow::OnSearchFormChange() {
     } else {
       // Restore view properties if no search fields are populated AND current mode is tab mode
         current_search_->RestoreViewProperties();
+        ResizeTreeColumns();
     }
-    ResizeTreeColumns();
     tab_bar_->setTabText(tab_bar_->currentIndex(), current_search_->GetCaption());
 }
 
@@ -496,8 +503,9 @@ void MainWindow::OnTabChange(int index) {
         NewSearch();
     } else {
         SetCurrentSearch(searches_[index]);
+        current_search_->SetRefreshReason(RefreshReason::TabChanged);
         current_search_->ToForm();
-        OnSearchFormChange();
+        ModelViewRefresh();
     }
 }
 
@@ -570,6 +578,7 @@ void MainWindow::InitializeSearchForm() {
 
 void MainWindow::NewSearch() {
     SetCurrentSearch(new Search(app_->buyout_manager(), QString("Search %1").arg(++search_count_).toStdString(), filters_, ui->treeView));
+    current_search_->SetRefreshReason(RefreshReason::TabCreated);
 
     tab_bar_->setTabText(tab_bar_->count() - 1, current_search_->GetCaption());
     tab_bar_->addTab("+");
@@ -577,7 +586,7 @@ void MainWindow::NewSearch() {
     // and remove all previous search data
     current_search_->ResetForm();
     searches_.push_back(current_search_);
-    OnSearchFormChange();
+    ModelViewRefresh();
 }
 
 void MainWindow::UpdateCurrentBucket() {
@@ -651,6 +660,7 @@ void MainWindow::UpdateCurrentBuyout() {
 void MainWindow::OnItemsRefreshed() {
     int tab = 0;
     for (auto search : searches_) {
+        search->SetRefreshReason(RefreshReason::ItemsChanged);
         // Don't update current search - it will be updated in OnSearchFormChange
         if (search != current_search_) {
             search->FilterItems(app_->items_manager().items());
@@ -658,7 +668,7 @@ void MainWindow::OnItemsRefreshed() {
         }
         tab++;
     }
-    OnSearchFormChange();
+    ModelViewRefresh();
 }
 
 MainWindow::~MainWindow() {

@@ -153,6 +153,11 @@ bool ItemsModel::setData(const QModelIndex &index, const QVariant &value, int ro
 
 void ItemsModel::sort(int column, Qt::SortOrder order)
 {
+    // Ignore sort requests if we're already sorted
+    if (sorted_ && (sort_column_ == column) && (sort_order_ == order))
+        return;
+
+    QLOG_DEBUG() << "Sorting";
     sort_order_ = order;
     sort_column_ = column;
 
@@ -161,6 +166,7 @@ void ItemsModel::sort(int column, Qt::SortOrder order)
         bucket->Sort(*column_obj, order);
     }
     layoutChanged();
+    SetSorted(true);
 }
 
 void ItemsModel::sort()

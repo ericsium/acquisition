@@ -105,6 +105,11 @@ const std::unique_ptr<Bucket> &Search::bucket(int row) const {
 }
 
 void Search::FilterItems(const Items &items) {
+    // If we're just changing tabs we don't need to update anything
+    if (refresh_reason_ == RefreshReason::TabChanged)
+        return;
+
+    QLOG_DEBUG() << "FilterItems: reason(" << refresh_reason_ << ")";
     items_.clear();
     for (const auto &item : items) {
         bool matches = true;
@@ -146,6 +151,8 @@ void Search::FilterItems(const Items &items) {
     for (auto &element : bucketed_tabs)
         buckets_.push_back(std::move(element.second));
 
+    // Let the model know that current sort order has been invalidated
+    model_->SetSorted(false);
 }
 
 QString Search::GetCaption() {
@@ -173,6 +180,8 @@ void Search::SetViewMode(ViewMode mode)
             SaveViewProperties();
 
         current_mode_ = mode;
+        // Force immediate view update
+        view_->doItemsLayout();
         model_->sort();
 
         if (mode == ByTab)
