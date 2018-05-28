@@ -20,6 +20,7 @@
 #pragma once
 
 #include "filters.h"
+#include "modsfilter.h"
 
 #include <QGridLayout>
 #include <QObject>
@@ -30,24 +31,27 @@
 #include <QLineEdit>
 #include <QPushButton>
 
-class SelectedMod {
+
+class SelectedGroup {
 public:
-    SelectedMod(const std::string &name, double min, double max, bool min_selected, bool max_selected);
-    SelectedMod(const SelectedMod&) = delete;
-    SelectedMod& operator=(const SelectedMod&) = delete;
-    SelectedMod(SelectedMod&& o) : 
+    SelectedGroup(const std::string &name, double min, double max, bool min_selected, bool max_selected);
+    SelectedGroup(const SelectedGroup&) = delete;
+    SelectedGroup& operator=(const SelectedGroup&) = delete;
+    SelectedGroup(SelectedGroup&& o) :
         data_(std::move(o.data_)),
-        mod_select_(std::move(o.mod_select_)),
+        group_select_(std::move(o.group_select_)),
         min_text_(std::move(o.min_text_)),
         max_text_(std::move(o.max_text_)),
-        delete_button_(std::move(o.delete_button_))
+        delete_button_(std::move(o.delete_button_)),
+        mods_filter_(std::move(o.mods_filter_))
     {}
-    SelectedMod& operator=(SelectedMod&& o) {
+    SelectedGroup& operator=(SelectedGroup&& o) {
         data_ = std::move(o.data_);
-        mod_select_ = std::move(o.mod_select_);
+        group_select_ = std::move(o.group_select_);
         min_text_ = std::move(o.min_text_);
         max_text_ = std::move(o.max_text_);
         delete_button_ = std::move(o.delete_button_);
+        mods_filter_ = std::move(o.mods_filter_);
         return *this;
     }
 
@@ -58,18 +62,19 @@ public:
     const ModFilterData &data() const { return data_; }
 private:
     ModFilterData data_;
-    std::unique_ptr<QComboBox> mod_select_;
-    QCompleter *mod_completer_;
+    std::unique_ptr<QComboBox> group_select_;
+    QCompleter *group_completer_;
     std::unique_ptr<QLineEdit> min_text_, max_text_;
     std::unique_ptr<QPushButton> delete_button_;
+    std::unique_ptr<ModsFilter> mods_filter_;
 };
 
-class ModsFilter;
+class GroupsFilter;
 
-class ModsFilterSignalHandler : public QObject {
+class GroupsFilterSignalHandler : public QObject {
     Q_OBJECT
 public:
-    ModsFilterSignalHandler(ModsFilter &parent) :
+    GroupsFilterSignalHandler(GroupsFilter &parent) :
         parent_(parent)
     {}
 signals:
@@ -78,18 +83,17 @@ private slots:
     void OnAddButtonClicked();
     void OnModChanged(int id);
 private:
-    ModsFilter &parent_;
+    GroupsFilter &parent_;
 };
 
-class ModsFilter : public Filter {
-    friend class ModsFilterSignalHandler;
+class GroupsFilter : public Filter {
+    friend class GroupsFilterSignalHandler;
 public:
-    explicit ModsFilter(QLayout *parent);
+    explicit GroupsFilter(QLayout *parent);
     void FromForm(FilterData *data);
     void ToForm(FilterData *data);
     void ResetForm();
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
-    QGridLayout * Layout() { return layout_.get(); }
 private:
     void Clear();
     void ClearSignalMapper();
@@ -102,7 +106,7 @@ private:
 
     std::unique_ptr<QGridLayout> layout_;
     std::unique_ptr<QPushButton> add_button_;
-    std::vector<SelectedMod> mods_;
-    ModsFilterSignalHandler signal_handler_;
+    std::vector<SelectedGroup> groups_;
+    GroupsFilterSignalHandler signal_handler_;
     QSignalMapper signal_mapper_;
 };

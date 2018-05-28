@@ -51,7 +51,7 @@
 #include "itemtooltip.h"
 #include "itemsmanager.h"
 #include "logpanel.h"
-#include "modsfilter.h"
+#include "groupsfilter.h"
 #include "replytimeout.h"
 #include "search.h"
 #include "selfdestructingreply.h"
@@ -559,7 +559,7 @@ void MainWindow::InitializeSearchForm() {
     AddSearchGroup(requirements_layout, "Requirements");
     AddSearchGroup(misc_layout, "Misc");
     AddSearchGroup(misc_flags_layout);
-    AddSearchGroup(mods_layout, "Mods");
+    AddSearchGroup(mods_layout, "Mod Groups");
 
     using move_only = std::unique_ptr<Filter>;
     move_only init[] = {
@@ -595,7 +595,7 @@ void MainWindow::InitializeSearchForm() {
         std::make_unique<MTXFilter>(misc_flags_layout, "", "MTX"),
         std::make_unique<AltartFilter>(misc_flags_layout, "", "Alt. art"),
         std::make_unique<PricedFilter>(misc_flags_layout, "", "Priced", app_->buyout_manager()),
-        std::make_unique<ModsFilter>(mods_layout)
+        std::make_unique<GroupsFilter>(mods_layout)
     };
     filters_ = std::vector<move_only>(std::make_move_iterator(std::begin(init)), std::make_move_iterator(std::end(init)));
 }

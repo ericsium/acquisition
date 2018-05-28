@@ -89,7 +89,6 @@ public:
     void ToForm(FilterData *data);
     void ResetForm();
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
-    QGridLayout * Layout() { return layout_.get(); }
 private:
     void Clear();
     void ClearSignalMapper();
