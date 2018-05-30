@@ -81,7 +81,7 @@ signals:
     void SearchFormChanged();
 private slots:
     void OnAddButtonClicked();
-    void OnModChanged(int id);
+    void OnGroupChanged(int id);
 private:
     GroupsFilter &parent_;
 };
@@ -100,9 +100,9 @@ private:
     void ClearLayout();
     void Initialize(QLayout *parent);
     void Refill();
-    void AddMod();
-    void UpdateMod(int id);
-    void DeleteMod(int id);
+    void AddGroup();
+    void UpdateGroup(int id);
+    void DeleteGroup(int id);
 
     std::unique_ptr<QGridLayout> layout_;
     std::unique_ptr<QPushButton> add_button_;

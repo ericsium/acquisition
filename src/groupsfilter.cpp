@@ -34,8 +34,8 @@ SelectedGroup::SelectedGroup(const std::string &name, double min, double max, bo
     group_select_(std::make_unique<QComboBox>()),
     min_text_(std::make_unique<QLineEdit>()),
     max_text_(std::make_unique<QLineEdit>()),
-    delete_button_(std::make_unique<QPushButton>("x")),
-    mods_filter_(std::make_unique<ModsFilter>(new QHBoxLayout))
+    delete_button_(std::make_unique<QPushButton>("x"))
+   // mods_filter_(std::make_unique<ModsFilter>(new QHBoxLayout))
 {
     group_select_->setEditable(true);
     group_select_->addItems(group_string_list);
@@ -68,14 +68,14 @@ enum LayoutColumn {
 };
 
 void SelectedGroup::AddToLayout(QGridLayout *layout, int index) {
-    int combobox_pos = index * 3;
-    int minmax_pos = combobox_pos + 1;
-    int mods_pos = minmax_pos + 1;
+    int combobox_pos = index * 2;
+    int minmax_pos = index * 2 + 1;
+    //int mods_pos = minmax_pos + 1;
     layout->addWidget(group_select_.get(), combobox_pos, 0, 1, LayoutColumn::kColumnCount);
     layout->addWidget(min_text_.get(), minmax_pos, LayoutColumn::kMinField);
     layout->addWidget(max_text_.get(), minmax_pos, LayoutColumn::kMaxField);
     layout->addWidget(delete_button_.get(), minmax_pos, LayoutColumn::kDeleteButton);
-    layout->addLayout(mods_filter_->Layout(), mods_pos, 0, 1, LayoutColumn::kColumnCount);
+    //layout->addLayout(mods_filter_->Layout(), mods_pos, 0, 1, LayoutColumn::kColumnCount);
 }
 
 void SelectedGroup::CreateSignalMappings(QSignalMapper *signal_mapper, int index) {
@@ -153,22 +153,20 @@ void GroupsFilter::Initialize(QLayout *parent) {
     widget->setLayout(layout_.get());
     parent->addWidget(widget);
 
-    QObject::connect(&signal_mapper_, SIGNAL(mapped(int)), &signal_handler_, SLOT(OnModChanged(int)));
+    QObject::connect(&signal_mapper_, SIGNAL(mapped(int)), &signal_handler_, SLOT(OnGroupChanged(int)));
 }
 
-void GroupsFilter::AddMod() {
-    QLOG_INFO() << "ADDING MOD";
+void GroupsFilter::AddGroup() {
     SelectedGroup mod("", 0, 0, false, false);
     groups_.push_back(std::move(mod));
     Refill();
-    QLOG_INFO() << "DONE ADDING MOD";
 }
 
-void GroupsFilter::UpdateMod(int id) {
+void GroupsFilter::UpdateGroup(int id) {
     groups_[id].Update();
 }
 
-void GroupsFilter::DeleteMod(int id) {
+void GroupsFilter::DeleteGroup(int id) {
     groups_.erase(groups_.begin() + id);
 
     Refill();
@@ -192,31 +190,25 @@ void GroupsFilter::Clear() {
 }
 
 void GroupsFilter::Refill() {
-        QLOG_INFO() << "GF: REFILL\n";
     ClearSignalMapper();
     ClearLayout();
-    QLOG_INFO() << "GF: REFILL2\n";
     int i = 0;
     for (auto &group : groups_) {
-        QLOG_INFO() << "GF: REFILL3.1\n";
         group.AddToLayout(layout_.get(), i);
         group.CreateSignalMappings(&signal_mapper_, i);
-        QLOG_INFO() << "GF: REFILL3.2\n";
         ++i;
     }
-        QLOG_INFO() << "GF: REFILL4\n";
     layout_->addWidget(add_button_.get(), 2 * groups_.size(), 0, 1, LayoutColumn::kColumnCount);
-    QLOG_INFO() << "GF: REFILL5\n";
 }
 
 void GroupsFilterSignalHandler::OnAddButtonClicked() {
-    parent_.AddMod();
+    parent_.AddGroup();
 }
 
-void GroupsFilterSignalHandler::OnModChanged(int id) {
+void GroupsFilterSignalHandler::OnGroupChanged(int id) {
     if (id < 0)
-        parent_.DeleteMod(-id - 1);
+        parent_.DeleteGroup(-id - 1);
     else
-        parent_.UpdateMod(id - 1);
+        parent_.UpdateGroup(id - 1);
     emit SearchFormChanged();
 }

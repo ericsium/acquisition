@@ -71,7 +71,7 @@ QNetworkRequest TabCache::Request(const QUrl &url, Flags flags) {
     // tell the 'real' request to prefer but not require the entry be in the cache.
     // If it is not in the cache it will be fetched from the network regardless.
     request.setAttribute(QNetworkRequest::CacheSaveControlAttribute, QNetworkRequest::PreferCache);
-    QLOG_DEBUG() << "Evicted:" << evicted << ":" << url.toDisplayString();
+    QLOG_INFO() << "Evicted:" << evicted << ":" << url.toDisplayString();
 
     return request;
 }
