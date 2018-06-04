@@ -141,23 +141,9 @@ void GroupsFilter::ResetForm() {
 }
 
 bool GroupsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t /* index */) {
-  //  return std::all_of(data->group_data.begin(), data->group_data.end(), [&item, data](auto const &pair) {
-  //      return pair.second.mods_filter_->Matches(item, data);
-  //  });
- /*   for (auto &mod : data->mod_data) {
-        if (mod.mod.empty())
-            continue;
-        const ModTable &mod_table = item->mody_table();
-        if (!mod_table.count(mod.mod))
-            return false;
-        double value = mod_table.at(mod.mod);
-        if (mod.min_filled && value < mod.min)
-            return false;
-        if (mod.max_filled && value > mod.max)
-            return false;
-    }
-    */
-    return true;
+    return std::all_of(groups_.begin(), groups_.end(), [&item, data](auto const &group) {
+        return group.mods_filter_->Matches(item, data, group.index());
+    });
 }
 
 void GroupsFilter::Initialize(QLayout *parent) {

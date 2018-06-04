@@ -86,6 +86,7 @@ private:
     void AddMod();
     void UpdateMod(int id);
     void DeleteMod(int id);
+    bool Match(const std::shared_ptr<Item> &item, const ModFilterData& mod, double &accumulate);
 
     std::unique_ptr<QGridLayout> layout_;
     std::unique_ptr<QPushButton> add_button_;

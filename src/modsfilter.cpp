@@ -121,18 +121,58 @@ void ModsFilter::ResetForm() {
     Refill();
 }
 
+bool ModsFilter::Match(const std::shared_ptr<Item> &item, const ModFilterData& mod, double &accumulate) {
+    if (mod.mod.empty())
+        return true;
+    const ModTable &mod_table = item->mod_table();
+    if (!mod_table.count(mod.mod))
+        return false;
+    double value = mod_table.at(mod.mod);
+    if (mod.min_filled && value < mod.min)
+        return false;
+    if (mod.max_filled && value > mod.max)
+        return false;
+    accumulate += value;
+    return true;
+}
+
 bool ModsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index) {
-    for (auto &mod : data->group_data[index].second) {
-        if (mod.mod.empty())
-            continue;
-        const ModTable &mod_table = item->mod_table();
-        if (!mod_table.count(mod.mod))
-            return false;
-        double value = mod_table.at(mod.mod);
-        if (mod.min_filled && value < mod.min)
-            return false;
-        if (mod.max_filled && value > mod.max)
-            return false;
+    auto const &group = data->group_data[index].first;
+    auto const &mods = data->group_data[index].second;
+    double accumulate{0};
+
+    if (!mods.empty()) {
+        auto matcher = [this,&item,&accumulate](auto const &mod){
+            return Match(item,mod,accumulate);
+        };
+
+        if (data->group_data[index].first.mod == "And") {
+            return std::all_of(mods.begin(), mods.end(), matcher);
+        }
+
+        if (data->group_data[index].first.mod == "Not") {
+            return std::none_of(mods.begin(), mods.end(), matcher);
+        }
+
+        if (data->group_data[index].first.mod == "Count") {
+            if (!group.min_filled && !group.max_filled)
+                return true;
+            int count = std::count_if(mods.begin(), mods.end(), matcher);
+            if (group.min_filled && count < group.min)
+                return false;
+            if (group.max_filled && count > group.max)
+                return false;
+        }
+
+        if (data->group_data[index].first.mod == "Sum") {
+            if (!group.min_filled && !group.max_filled)
+                return true;
+            std::for_each(mods.begin(), mods.end(), matcher);
+            if (group.min_filled && accumulate < group.min)
+                return false;
+            if (group.max_filled && accumulate > group.max)
+                return false;
+        }
     }
     return true;
 }

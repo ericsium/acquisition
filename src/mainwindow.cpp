@@ -462,7 +462,6 @@ void MainWindow::SetCurrentSearch(Search *search) {
 }
 
 void MainWindow::OnSearchFormChange() {
-    QLOG_INFO() << "OnSearchFormChange";
     current_search_->SetRefreshReason(RefreshReason::SearchFormChanged);
     ModelViewRefresh();
 }
