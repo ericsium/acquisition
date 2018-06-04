@@ -102,16 +102,16 @@ ModsFilter::ModsFilter(QLayout *parent):
         parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
 }
 
-void ModsFilter::FromForm(FilterData *data) {
-    auto &mod_data = data->mod_data;
+void ModsFilter::FromForm(FilterData *data, size_t index) {
+    auto &mod_data = data->group_data[index].second;
     mod_data.clear();
     for (auto &mod : mods_)
         mod_data.push_back(mod.data());
 }
 
-void ModsFilter::ToForm(FilterData *data) {
+void ModsFilter::ToForm(FilterData *data, size_t index) {
     Clear();
-    for (auto &mod : data->mod_data)
+    for (auto &mod : data->group_data[index].second)
         mods_.push_back(SelectedMod(mod.mod, mod.min, mod.max, mod.min_filled, mod.max_filled));
     Refill();
 }
@@ -121,8 +121,8 @@ void ModsFilter::ResetForm() {
     Refill();
 }
 
-bool ModsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
-    for (auto &mod : data->mod_data) {
+bool ModsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index) {
+    for (auto &mod : data->group_data[index].second) {
         if (mod.mod.empty())
             continue;
         const ModTable &mod_table = item->mod_table();

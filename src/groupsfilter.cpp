@@ -29,14 +29,17 @@
 
 static const QStringList group_string_list = {"And", "Not", "Count", "Sum", "If"};
 
-SelectedGroup::SelectedGroup(const std::string &name, double min, double max, bool min_filled, bool max_filled) :
+SelectedGroup::SelectedGroup(const std::string &name, double min, double max, bool min_filled, bool max_filled, size_t index) :
     data_(name, min, max, min_filled, max_filled),
     group_select_(std::make_unique<QComboBox>()),
     min_text_(std::make_unique<QLineEdit>()),
     max_text_(std::make_unique<QLineEdit>()),
-    delete_button_(std::make_unique<QPushButton>("x"))
-   // mods_filter_(std::make_unique<ModsFilter>(new QHBoxLayout))
+    delete_button_(std::make_unique<QPushButton>("x")),
+    index_(index)
 {
+    mods_layout_ = std::make_unique<QHBoxLayout>();
+    mods_layout_->setContentsMargins(0, 0, 0, 0);
+
     group_select_->setEditable(true);
     group_select_->addItems(group_string_list);
     group_completer_ = new QCompleter(group_string_list);
@@ -68,14 +71,17 @@ enum LayoutColumn {
 };
 
 void SelectedGroup::AddToLayout(QGridLayout *layout, int index) {
-    int combobox_pos = index * 2;
-    int minmax_pos = index * 2 + 1;
+    int combobox_pos = index * 3;
+    int minmax_pos = index * 3 + 1;
     //int mods_pos = minmax_pos + 1;
     layout->addWidget(group_select_.get(), combobox_pos, 0, 1, LayoutColumn::kColumnCount);
     layout->addWidget(min_text_.get(), minmax_pos, LayoutColumn::kMinField);
     layout->addWidget(max_text_.get(), minmax_pos, LayoutColumn::kMaxField);
     layout->addWidget(delete_button_.get(), minmax_pos, LayoutColumn::kDeleteButton);
-    //layout->addLayout(mods_filter_->Layout(), mods_pos, 0, 1, LayoutColumn::kColumnCount);
+    layout->addLayout(mods_layout_.get(), minmax_pos+1, 0, 1, LayoutColumn::kColumnCount);
+    if (!mods_filter_) {
+        mods_filter_ = std::make_unique<ModsFilter>(mods_layout_.get());
+    }
 }
 
 void SelectedGroup::CreateSignalMappings(QSignalMapper *signal_mapper, int index) {
@@ -106,18 +112,27 @@ GroupsFilter::GroupsFilter(QLayout *parent):
         parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
 }
 
-void GroupsFilter::FromForm(FilterData *data) {
-    auto &group_data = data->mod_data;
+void GroupsFilter::FromForm(FilterData *data, size_t /* index */) {
+    auto &group_data = data->group_data;
     group_data.clear();
-    for (auto &group : groups_)
-        group_data.push_back(group.data());
+    for (auto &group : groups_) {
+        group_data.push_back({group.data(), {}});
+        group.mods_filter_->FromForm(data, group.index());
+    }
 }
 
-void GroupsFilter::ToForm(FilterData *data) {
+void GroupsFilter::ToForm(FilterData *data, size_t /* index */) {
     Clear();
-    for (auto &group : data->mod_data)
-        groups_.push_back(SelectedGroup(group.mod, group.min, group.max, group.min_filled, group.max_filled));
+    for (auto const & pair: data->group_data) {
+        auto const & group = pair.first;
+        groups_.push_back(SelectedGroup(group.mod, group.min, group.max, group.min_filled, group.max_filled, groups_.size()));
+    }
+
     Refill();
+    // Must refill once to create layouts before forcing ToForm which requires them
+    for (auto &group : groups_) {
+        group.mods_filter_->ToForm(data, group.index());
+    }
 }
 
 void GroupsFilter::ResetForm() {
@@ -125,7 +140,10 @@ void GroupsFilter::ResetForm() {
     Refill();
 }
 
-bool GroupsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
+bool GroupsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t /* index */) {
+  //  return std::all_of(data->group_data.begin(), data->group_data.end(), [&item, data](auto const &pair) {
+  //      return pair.second.mods_filter_->Matches(item, data);
+  //  });
  /*   for (auto &mod : data->mod_data) {
         if (mod.mod.empty())
             continue;
@@ -157,8 +175,8 @@ void GroupsFilter::Initialize(QLayout *parent) {
 }
 
 void GroupsFilter::AddGroup() {
-    SelectedGroup mod("", 0, 0, false, false);
-    groups_.push_back(std::move(mod));
+    SelectedGroup group("And", 0, 0, false, false, groups_.size());
+    groups_.push_back(std::move(group));
     Refill();
 }
 
@@ -198,7 +216,7 @@ void GroupsFilter::Refill() {
         group.CreateSignalMappings(&signal_mapper_, i);
         ++i;
     }
-    layout_->addWidget(add_button_.get(), 2 * groups_.size(), 0, 1, LayoutColumn::kColumnCount);
+    layout_->addWidget(add_button_.get(), 3 * groups_.size(), 0, 1, LayoutColumn::kColumnCount);
 }
 
 void GroupsFilterSignalHandler::OnAddButtonClicked() {

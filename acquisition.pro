@@ -122,7 +122,7 @@ FORMS += \
     forms/logindialog.ui \
     forms/steamlogindialog.ui
 
-CONFIG += c++11
+CONFIG += c++14
 
 DEPENDPATH *= $${INCLUDEPATH}
 

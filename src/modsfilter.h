@@ -35,21 +35,8 @@ public:
     SelectedMod(const std::string &name, double min, double max, bool min_selected, bool max_selected);
     SelectedMod(const SelectedMod&) = delete;
     SelectedMod& operator=(const SelectedMod&) = delete;
-    SelectedMod(SelectedMod&& o) : 
-        data_(std::move(o.data_)),
-        mod_select_(std::move(o.mod_select_)),
-        min_text_(std::move(o.min_text_)),
-        max_text_(std::move(o.max_text_)),
-        delete_button_(std::move(o.delete_button_))
-    {}
-    SelectedMod& operator=(SelectedMod&& o) {
-        data_ = std::move(o.data_);
-        mod_select_ = std::move(o.mod_select_);
-        min_text_ = std::move(o.min_text_);
-        max_text_ = std::move(o.max_text_);
-        delete_button_ = std::move(o.delete_button_);
-        return *this;
-    }
+    SelectedMod(SelectedMod&& o) = default;
+    SelectedMod& operator=(SelectedMod&& o) = default;
 
     void Update();
     void AddToLayout(QGridLayout *layout, int index);
@@ -85,10 +72,10 @@ class ModsFilter : public Filter {
     friend class ModsFilterSignalHandler;
 public:
     explicit ModsFilter(QLayout *parent);
-    void FromForm(FilterData *data);
-    void ToForm(FilterData *data);
+    void FromForm(FilterData *data, size_t index);
+    void ToForm(FilterData *data, size_t index);
     void ResetForm();
-    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index);
     QGridLayout * Layout() { return layout_.get(); }
 private:
     void Clear();
