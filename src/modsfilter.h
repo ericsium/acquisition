@@ -68,7 +68,7 @@ private:
     ModsFilter &parent_;
 };
 
-class ModsFilter : public Filter {
+class ModsFilter {
     friend class ModsFilterSignalHandler;
 public:
     explicit ModsFilter(QLayout *parent);
@@ -76,7 +76,6 @@ public:
     void ToForm(FilterData *data, size_t index);
     void ResetForm();
     bool Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index);
-    QGridLayout * Layout() { return layout_.get(); }
 private:
     void Clear();
     void ClearSignalMapper();
@@ -86,7 +85,7 @@ private:
     void AddMod();
     void UpdateMod(int id);
     void DeleteMod(int id);
-    bool Match(const std::shared_ptr<Item> &item, const ModFilterData& mod, double &accumulate);
+    bool Match(const std::shared_ptr<Item> &item, const ModFilterData& group, const ModFilterData& mod, double &accumulate);
 
     std::unique_ptr<QGridLayout> layout_;
     std::unique_ptr<QPushButton> add_button_;

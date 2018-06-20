@@ -121,7 +121,7 @@ void ModsFilter::ResetForm() {
     Refill();
 }
 
-bool ModsFilter::Match(const std::shared_ptr<Item> &item, const ModFilterData& mod, double &accumulate) {
+bool ModsFilter::Match(const std::shared_ptr<Item> &item, const ModFilterData& group, const ModFilterData& mod, double &accumulate) {
     if (mod.mod.empty())
         return true;
     const ModTable &mod_table = item->mod_table();
@@ -142,8 +142,8 @@ bool ModsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, si
     double accumulate{0};
 
     if (!mods.empty()) {
-        auto matcher = [this,&item,&accumulate](auto const &mod){
-            return Match(item,mod,accumulate);
+        auto matcher = [this,&item,&group,&accumulate](auto const &mod){
+            return Match(item,group,mod,accumulate);
         };
 
         if (data->group_data[index].first.mod == "And") {

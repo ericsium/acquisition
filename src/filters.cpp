@@ -63,11 +63,11 @@ NameSearchFilter::NameSearchFilter(QLayout *parent) {
     Initialize(parent);
 }
 
-void NameSearchFilter::FromForm(FilterData *data, size_t /* index */) {
+void NameSearchFilter::FromForm(FilterData *data) {
     data->text_query = textbox_->text().toUtf8().constData();
 }
 
-void NameSearchFilter::ToForm(FilterData *data, size_t /* index */) {
+void NameSearchFilter::ToForm(FilterData *data) {
     textbox_->setText(data->text_query.c_str());
 }
 
@@ -75,7 +75,7 @@ void NameSearchFilter::ResetForm() {
     textbox_->setText("");
 }
 
-bool NameSearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t /* index */) {
+bool NameSearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     std::string query = data->text_query;
     std::string name = item->PrettyName();
     std::transform(query.begin(), query.end(), query.begin(), ::tolower);
@@ -105,13 +105,13 @@ CategorySearchFilter::CategorySearchFilter(QLayout *parent, QAbstractListModel *
     Initialize(parent);
 }
 
-void CategorySearchFilter::FromForm(FilterData *data, size_t /* index */) {
+void CategorySearchFilter::FromForm(FilterData *data) {
     std::string current_text = combobox_->currentText().toStdString();
     boost::to_lower(current_text);
     data->text_query = (current_text == k_Default) ? "":current_text;
 }
 
-void CategorySearchFilter::ToForm(FilterData *data, size_t /* index */) {
+void CategorySearchFilter::ToForm(FilterData *data) {
     auto index = combobox_->findText(data->text_query.c_str(), Qt::MatchFixedString);
     combobox_->setCurrentIndex(std::max(0, index));
 }
@@ -120,7 +120,7 @@ void CategorySearchFilter::ResetForm() {
     combobox_->setCurrentText(k_Default.c_str());
 }
 
-bool CategorySearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t /* index */) {
+bool CategorySearchFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     return item->category().find(data->text_query) != std::string::npos;
 }
 
@@ -186,14 +186,14 @@ void MinMaxFilter::Initialize(QLayout *parent) {
                      parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
 }
 
-void MinMaxFilter::FromForm(FilterData *data, size_t /* index */) {
+void MinMaxFilter::FromForm(FilterData *data) {
     data->min_filled = textbox_min_->text().size() > 0;
     data->min = textbox_min_->text().toDouble();
     data->max_filled = textbox_max_->text().size() > 0;
     data->max = textbox_max_->text().toDouble();
 }
 
-void MinMaxFilter::ToForm(FilterData *data, size_t /* index */) {
+void MinMaxFilter::ToForm(FilterData *data) {
     if (data->min_filled)
         textbox_min_->setText(QString::number(data->min));
     else
@@ -209,7 +209,7 @@ void MinMaxFilter::ResetForm() {
     textbox_max_->setText("");
 }
 
-bool MinMaxFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t /* index */) {
+bool MinMaxFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     if (IsValuePresent(item)) {
         double value = GetValue(item);
         if (data->min_filled && data->min > value)
@@ -296,7 +296,7 @@ void SocketsColorsFilter::Initialize(QLayout *parent, const char* caption) {
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }
 
-void SocketsColorsFilter::FromForm(FilterData *data, size_t /* index */) {
+void SocketsColorsFilter::FromForm(FilterData *data) {
     data->r_filled = textbox_r_->text().size() > 0;
     data->g_filled = textbox_g_->text().size() > 0;
     data->b_filled = textbox_b_->text().size() > 0;
@@ -305,7 +305,7 @@ void SocketsColorsFilter::FromForm(FilterData *data, size_t /* index */) {
     data->b = textbox_b_->text().toInt();
 }
 
-void SocketsColorsFilter::ToForm(FilterData *data, size_t /* index */) {
+void SocketsColorsFilter::ToForm(FilterData *data) {
     if (data->r_filled)
         textbox_r_->setText(QString::number(data->r));
     if (data->g_filled)
@@ -326,7 +326,7 @@ bool SocketsColorsFilter::Check(int need_r, int need_g, int need_b, int got_r, i
     return diff <= got_w;
 }
 
-bool SocketsColorsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t /* index */) {
+bool SocketsColorsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     if (!data->r_filled && !data->g_filled && !data->b_filled)
         return true;
     int need_r = 0, need_g = 0, need_b = 0;
@@ -385,11 +385,11 @@ void BooleanFilter::Initialize(QLayout *parent) {
                      parent->parentWidget()->window(), SLOT(OnSearchFormChange()));
 }
 
-void BooleanFilter::FromForm(FilterData *data, size_t /* index */) {
+void BooleanFilter::FromForm(FilterData *data) {
     data->checked = checkbox_->isChecked();
 }
 
-void BooleanFilter::ToForm(FilterData *data, size_t /* index */) {
+void BooleanFilter::ToForm(FilterData *data) {
     checkbox_->setChecked(data->checked);
 }
 
@@ -397,7 +397,7 @@ void BooleanFilter::ResetForm() {
     checkbox_->setChecked(false);
 }
 
-bool BooleanFilter::Matches(const std::shared_ptr<Item> & /* item */, FilterData * /* data */, size_t /* index */) {
+bool BooleanFilter::Matches(const std::shared_ptr<Item> & /* item */, FilterData * /* data */) {
     return true;
 }
 

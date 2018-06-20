@@ -27,22 +27,23 @@
 
 #include "porting.h"
 
-static const QStringList group_string_list = {"And", "Not", "Count", "Sum", "If"};
-
-SelectedGroup::SelectedGroup(const std::string &name, double min, double max, bool min_filled, bool max_filled, size_t index) :
+SelectedGroup::SelectedGroup(const std::string &name, double min, double max, bool min_filled, bool max_filled) :
     data_(name, min, max, min_filled, max_filled),
     group_select_(std::make_unique<QComboBox>()),
     min_text_(std::make_unique<QLineEdit>()),
     max_text_(std::make_unique<QLineEdit>()),
-    delete_button_(std::make_unique<QPushButton>("x")),
-    index_(index)
+    delete_button_(std::make_unique<QPushButton>("x"))
 {
     mods_layout_ = std::make_unique<QHBoxLayout>();
     mods_layout_->setContentsMargins(0, 0, 0, 0);
 
-    group_select_->setEditable(true);
-    group_select_->addItems(group_string_list);
-    group_completer_ = new QCompleter(group_string_list);
+    QStringList group_type_list;
+    for (auto &name : GroupType::_names()) {
+        group_type_list.push_back(name);
+    }
+    group_select_->setEditable(false);
+    group_select_->addItems(group_type_list);
+    group_completer_ = new QCompleter(group_type_list);
     group_completer_->setCompletionMode(QCompleter::PopupCompletion);
     group_completer_->setFilterMode(Qt::MatchContains);
     group_completer_->setCaseSensitivity(Qt::CaseInsensitive);
@@ -112,7 +113,7 @@ GroupsFilter::GroupsFilter(QLayout *parent):
         parent->parentWidget()->window(), SLOT(OnDelayedSearchFormChange()));
 }
 
-void GroupsFilter::FromForm(FilterData *data, size_t /* index */) {
+void GroupsFilter::FromForm(FilterData *data) {
     auto &group_data = data->group_data;
     group_data.clear();
     for (auto &group : groups_) {
@@ -121,11 +122,11 @@ void GroupsFilter::FromForm(FilterData *data, size_t /* index */) {
     }
 }
 
-void GroupsFilter::ToForm(FilterData *data, size_t /* index */) {
+void GroupsFilter::ToForm(FilterData *data) {
     Clear();
     for (auto const & pair: data->group_data) {
         auto const & group = pair.first;
-        groups_.push_back(SelectedGroup(group.mod, group.min, group.max, group.min_filled, group.max_filled, groups_.size()));
+        groups_.push_back(SelectedGroup(group.mod, group.min, group.max, group.min_filled, group.max_filled));
     }
 
     Refill();
@@ -138,10 +139,14 @@ void GroupsFilter::ToForm(FilterData *data, size_t /* index */) {
 void GroupsFilter::ResetForm() {
     Clear();
     Refill();
+    for (auto &group : groups_) {
+        group.mods_filter_->ResetForm();
+    }
 }
 
-bool GroupsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t /* index */) {
+bool GroupsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) {
     return std::all_of(groups_.begin(), groups_.end(), [&item, data](auto const &group) {
+        //auto const &mods = data->group_data[group.index()].second;
         return group.mods_filter_->Matches(item, data, group.index());
     });
 }
@@ -161,7 +166,7 @@ void GroupsFilter::Initialize(QLayout *parent) {
 }
 
 void GroupsFilter::AddGroup() {
-    SelectedGroup group("And", 0, 0, false, false, groups_.size());
+    SelectedGroup group("And", 0, 0, false, false);
     groups_.push_back(std::move(group));
     Refill();
 }
@@ -200,6 +205,7 @@ void GroupsFilter::Refill() {
     for (auto &group : groups_) {
         group.AddToLayout(layout_.get(), i);
         group.CreateSignalMappings(&signal_mapper_, i);
+        group.SetIndex(i);
         ++i;
     }
     layout_->addWidget(add_button_.get(), 3 * groups_.size(), 0, 1, LayoutColumn::kColumnCount);

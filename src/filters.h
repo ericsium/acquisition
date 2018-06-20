@@ -43,10 +43,10 @@ class QAbstractListModel;
  */
 class Filter {
 public:
-    virtual void FromForm(FilterData *data, size_t index = 0) = 0;
-    virtual void ToForm(FilterData *data, size_t index = 0) = 0;
+    virtual void FromForm(FilterData *data) = 0;
+    virtual void ToForm(FilterData *data) = 0;
     virtual void ResetForm() = 0;
-    virtual bool Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index = 0) = 0;
+    virtual bool Matches(const std::shared_ptr<Item> &item, FilterData *data) = 0;
     virtual ~Filter() {};
     std::unique_ptr<FilterData> CreateData();
 };
@@ -106,10 +106,10 @@ private:
 class NameSearchFilter : public Filter {
 public:
     explicit NameSearchFilter(QLayout *parent);
-    void FromForm(FilterData *data, size_t index = 0);
-    void ToForm(FilterData *data, size_t index = 0);
+    void FromForm(FilterData *data);
+    void ToForm(FilterData *data);
     void ResetForm();
-    bool Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index = 0);
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
     void Initialize(QLayout *parent);
 private:
     QLineEdit *textbox_;
@@ -118,10 +118,10 @@ private:
 class CategorySearchFilter : public Filter {
 public:
     explicit CategorySearchFilter(QLayout *parent, QAbstractListModel *model);
-    void FromForm(FilterData *data, size_t index = 0);
-    void ToForm(FilterData *data, size_t index = 0);
+    void FromForm(FilterData *data);
+    void ToForm(FilterData *data);
     void ResetForm();
-    bool Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index = 0);
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
     void Initialize(QLayout *parent);
     static const std::string k_Default;
 private:
@@ -134,10 +134,10 @@ class MinMaxFilter : public Filter {
 public:
     MinMaxFilter(QLayout *parent, std::string property);
     MinMaxFilter(QLayout *parent, std::string property, std::string caption);
-    void FromForm(FilterData *data, size_t index = 0);
-    void ToForm(FilterData *data, size_t index = 0);
+    void FromForm(FilterData *data);
+    void ToForm(FilterData *data);
     void ResetForm();
-    bool Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index = 0);
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
     void Initialize(QLayout *parent);
 protected:
     virtual double GetValue(const std::shared_ptr<Item> &item) = 0;
@@ -221,10 +221,10 @@ class SocketsColorsFilter : public Filter {
 public:
     SocketsColorsFilter() {}
     explicit SocketsColorsFilter(QLayout *parent);
-    void FromForm(FilterData *data, size_t index = 0);
-    void ToForm(FilterData *data, size_t index = 0);
+    void FromForm(FilterData *data);
+    void ToForm(FilterData *data);
     void ResetForm();
-    bool Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index = 0);
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
     void Initialize(QLayout *parent, const char* caption);
 protected:
     bool Check(int need_r, int need_g, int need_b, int got_r, int got_g, int got_b, int got_w);
@@ -240,10 +240,10 @@ public:
 class BooleanFilter : public Filter {
 public:
     BooleanFilter(QLayout *parent, std::string property, std::string caption);
-    void FromForm(FilterData *data, size_t index = 0);
-    void ToForm(FilterData *data, size_t index = 0);
+    void FromForm(FilterData *data);
+    void ToForm(FilterData *data);
     void ResetForm();
-    bool Matches(const std::shared_ptr<Item> &item, FilterData *data, size_t index = 0);
+    bool Matches(const std::shared_ptr<Item> &item, FilterData *data);
     void Initialize(QLayout *parent);
 private:
     QCheckBox *checkbox_;

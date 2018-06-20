@@ -71,6 +71,7 @@ SOURCES += \
 
 HEADERS += \
     deps/sqlite/sqlite3.h \
+    deps/better-enums/enum.h \
     src/application.h \
     src/autoonline.h \
     src/bucket.h \

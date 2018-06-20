@@ -27,6 +27,7 @@
 
 #include "item.h"
 
+
 class QComboBox;
 class QNetworkReply;
 
