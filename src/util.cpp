@@ -28,6 +28,7 @@
 #include <QFontMetrics>
 #include <QNetworkReply>
 #include <QTextDocument>
+#include <QLayoutItem>
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include <sstream>
@@ -52,6 +53,15 @@ double Util::AverageDamage(const std::string &s) {
 void Util::PopulateBuyoutTypeComboBox(QComboBox *combobox) {
     combobox->addItems(QStringList({"[Ignore]", "Buyout", "Fixed price", "Current Offer", "No price", "[Inherit]"}));
     combobox->setCurrentIndex(5);
+}
+
+void Util::ClearLayout(QLayout *layout) {
+    QLayoutItem *item;
+    while((item = layout->takeAt(0))) {
+        if (item->layout()) {
+            ClearLayout(item->layout());
+        }
+    }
 }
 
 void Util::PopulateBuyoutCurrencyComboBox(QComboBox *combobox) {

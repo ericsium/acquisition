@@ -27,6 +27,7 @@
 
 #include "modlist.h"
 #include "porting.h"
+#include "util.h"
 
 SelectedMod::SelectedMod(const std::string &name, double min, double max, bool min_filled, bool max_filled) :
     data_(name, min, max, min_filled, max_filled),
@@ -58,20 +59,16 @@ void SelectedMod::Update() {
     data_.max_filled = !max_text_->text().isEmpty();
 }
 
-enum LayoutColumn {
-    kMinField,
-    kMaxField,
-    kDeleteButton,
-    kColumnCount
-};
+void SelectedMod::AddToLayout(QVBoxLayout *layout, int index) {
+    layout->addWidget(mod_select_.get());
 
-void SelectedMod::AddToLayout(QGridLayout *layout, int index) {
-    int combobox_pos = index * 2;
-    int minmax_pos = index * 2 + 1;
-    layout->addWidget(mod_select_.get(), combobox_pos, 0, 1, LayoutColumn::kColumnCount);
-    layout->addWidget(min_text_.get(), minmax_pos, LayoutColumn::kMinField);
-    layout->addWidget(max_text_.get(), minmax_pos, LayoutColumn::kMaxField);
-    layout->addWidget(delete_button_.get(), minmax_pos, LayoutColumn::kDeleteButton);
+    auto minmax = new QHBoxLayout();
+
+    minmax->addWidget(min_text_.get());
+    minmax->addWidget(max_text_.get());
+    minmax->addWidget(delete_button_.get());
+
+    layout->addLayout(minmax);
 }
 
 void SelectedMod::CreateSignalMappings(QSignalMapper *signal_mapper, int index) {
@@ -178,7 +175,8 @@ bool ModsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data, si
 }
 
 void ModsFilter::Initialize(QLayout *parent) {
-    layout_ = std::make_unique<QGridLayout>();
+    layout_ = std::make_unique<QVBoxLayout>();
+    layout_->setContentsMargins(10, 0, 0, 10);
     add_button_ = std::make_unique<QPushButton>("Add mod");
     QObject::connect(add_button_.get(), SIGNAL(clicked()), &signal_handler_, SLOT(OnAddButtonClicked()));
     Refill();
@@ -214,8 +212,8 @@ void ModsFilter::ClearSignalMapper() {
 }
 
 void ModsFilter::ClearLayout() {
-    QLayoutItem *item;
-    while ((item = layout_->takeAt(0))) {}
+    QLOG_INFO() << "ModsFilter::ClearLayout";
+    //Util::ClearLayout(layout_.get());
 }
 
 void ModsFilter::Clear() {
@@ -236,7 +234,7 @@ void ModsFilter::Refill() {
         ++i;
     }
 
-    layout_->addWidget(add_button_.get(), 2 * mods_.size(), 0, 1, LayoutColumn::kColumnCount);
+    layout_->addWidget(add_button_.get());
 }
 
 void ModsFilterSignalHandler::OnAddButtonClicked() {

@@ -39,7 +39,7 @@ public:
     SelectedMod& operator=(SelectedMod&& o) = default;
 
     void Update();
-    void AddToLayout(QGridLayout *layout, int index);
+    void AddToLayout(QVBoxLayout *layout, int index);
     void CreateSignalMappings(QSignalMapper *signal_mapper, int index);
     void RemoveSignalMappings(QSignalMapper *signal_mapper);
     const ModFilterData &data() const { return data_; }
@@ -87,7 +87,7 @@ private:
     void DeleteMod(int id);
     bool Match(const std::shared_ptr<Item> &item, const ModFilterData& group, const ModFilterData& mod, double &accumulate);
 
-    std::unique_ptr<QGridLayout> layout_;
+    std::unique_ptr<QVBoxLayout> layout_;
     std::unique_ptr<QPushButton> add_button_;
     std::vector<SelectedMod> mods_;
     ModsFilterSignalHandler signal_handler_;

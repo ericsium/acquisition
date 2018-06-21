@@ -24,6 +24,7 @@
 #include "rapidjson/document.h"
 #include <QDebug>
 #include <QObject>
+#include <QLayout>
 
 #include "item.h"
 
@@ -91,6 +92,8 @@ void RapidjsonAddConstString(rapidjson::Value *object, const char *const name, c
 std::string StringReplace(const std::string &haystack, const std::string &needle, const std::string &replace);
 std::string StringJoin(const std::vector<std::string> &array, const std::string &separator);
 std::vector<std::string> StringSplit(const std::string &str, char delim);
+
+void ClearLayout(QLayout *layout);
 
 /*
     Example usage:

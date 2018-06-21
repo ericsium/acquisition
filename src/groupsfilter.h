@@ -43,7 +43,7 @@ public:
     SelectedGroup& operator=(SelectedGroup&& o) = default;
 
     void Update();
-    void AddToLayout(QGridLayout *layout, int index);
+    void AddToLayout(QVBoxLayout *layout, int index);
     void CreateSignalMappings(QSignalMapper *signal_mapper, int index);
     void RemoveSignalMappings(QSignalMapper *signal_mapper);
     void SetIndex(size_t index) { index_ = index; }
@@ -56,7 +56,8 @@ private:
     QCompleter *group_completer_;
     std::unique_ptr<QLineEdit> min_text_, max_text_;
     std::unique_ptr<QPushButton> delete_button_;
-    std::unique_ptr<QHBoxLayout> mods_layout_;
+    std::unique_ptr<QVBoxLayout> mods_layout_;
+    std::unique_ptr<QHBoxLayout> group_layout_;
     size_t index_{999};
 };
 
@@ -105,7 +106,7 @@ private:
     void UpdateGroup(int id);
     void DeleteGroup(int id);
 
-    std::unique_ptr<QGridLayout> layout_;
+    std::unique_ptr<QVBoxLayout> layout_;
     std::unique_ptr<QPushButton> add_button_;
     std::vector<SelectedGroup> groups_;
     GroupsFilterSignalHandler signal_handler_;

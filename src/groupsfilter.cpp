@@ -24,8 +24,10 @@
 #include <QObject>
 #include <QPushButton>
 #include "QsLog.h"
+#include <QVBoxLayout>
 
 #include "porting.h"
+#include "util.h"
 
 SelectedGroup::SelectedGroup(const std::string &name, double min, double max, bool min_filled, bool max_filled) :
     data_(name, min, max, min_filled, max_filled),
@@ -34,7 +36,9 @@ SelectedGroup::SelectedGroup(const std::string &name, double min, double max, bo
     max_text_(std::make_unique<QLineEdit>()),
     delete_button_(std::make_unique<QPushButton>("x"))
 {
-    mods_layout_ = std::make_unique<QHBoxLayout>();
+    group_layout_ = std::make_unique<QHBoxLayout>();
+    mods_layout_ = std::make_unique<QVBoxLayout>();
+    group_layout_->setContentsMargins(0, 0, 0, 0);
     mods_layout_->setContentsMargins(0, 0, 0, 0);
 
     QStringList group_type_list;
@@ -64,22 +68,14 @@ void SelectedGroup::Update() {
     data_.max_filled = !max_text_->text().isEmpty();
 }
 
-enum LayoutColumn {
-    kMinField,
-    kMaxField,
-    kDeleteButton,
-    kColumnCount
-};
+void SelectedGroup::AddToLayout(QVBoxLayout *layout, int index) {
+    group_layout_->addWidget(group_select_.get());
+    group_layout_->addWidget(min_text_.get());
+    group_layout_->addWidget(max_text_.get());
+    group_layout_->addWidget(delete_button_.get());
 
-void SelectedGroup::AddToLayout(QGridLayout *layout, int index) {
-    int combobox_pos = index * 3;
-    int minmax_pos = index * 3 + 1;
-    //int mods_pos = minmax_pos + 1;
-    layout->addWidget(group_select_.get(), combobox_pos, 0, 1, LayoutColumn::kColumnCount);
-    layout->addWidget(min_text_.get(), minmax_pos, LayoutColumn::kMinField);
-    layout->addWidget(max_text_.get(), minmax_pos, LayoutColumn::kMaxField);
-    layout->addWidget(delete_button_.get(), minmax_pos, LayoutColumn::kDeleteButton);
-    layout->addLayout(mods_layout_.get(), minmax_pos+1, 0, 1, LayoutColumn::kColumnCount);
+    layout->addLayout(group_layout_.get());
+    layout->addLayout(mods_layout_.get());
     if (!mods_filter_) {
         mods_filter_ = std::make_unique<ModsFilter>(mods_layout_.get());
     }
@@ -152,7 +148,7 @@ bool GroupsFilter::Matches(const std::shared_ptr<Item> &item, FilterData *data) 
 }
 
 void GroupsFilter::Initialize(QLayout *parent) {
-    layout_ = std::make_unique<QGridLayout>();
+    layout_ = std::make_unique<QVBoxLayout>();
     add_button_ = std::make_unique<QPushButton>("Add group");
     QObject::connect(add_button_.get(), SIGNAL(clicked()), &signal_handler_, SLOT(OnAddButtonClicked()));
     Refill();
@@ -188,8 +184,8 @@ void GroupsFilter::ClearSignalMapper() {
 }
 
 void GroupsFilter::ClearLayout() {
-    QLayoutItem *item;
-    while ((item = layout_->takeAt(0))) {}
+    QLOG_INFO() << "GroupsFilter::ClearLayout";
+    //Util::ClearLayout(layout_.get());
 }
 
 void GroupsFilter::Clear() {
@@ -208,7 +204,7 @@ void GroupsFilter::Refill() {
         group.SetIndex(i);
         ++i;
     }
-    layout_->addWidget(add_button_.get(), 3 * groups_.size(), 0, 1, LayoutColumn::kColumnCount);
+    layout_->addWidget(add_button_.get());
 }
 
 void GroupsFilterSignalHandler::OnAddButtonClicked() {
