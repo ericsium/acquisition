@@ -32,7 +32,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include <sstream>
-
+#include <QsLog.h>
 #include "buyoutmanager.h"
 #include "porting.h"
 #include <boost/algorithm/string/join.hpp>
@@ -57,7 +57,9 @@ void Util::PopulateBuyoutTypeComboBox(QComboBox *combobox) {
 
 void Util::ClearLayout(QLayout *layout) {
     QLayoutItem *item;
+    QLOG_INFO() << "TakeAt";
     while((item = layout->takeAt(0))) {
+        QLOG_INFO() << "If";
         if (item->layout()) {
             ClearLayout(item->layout());
         }

@@ -74,8 +74,17 @@ void SelectedGroup::AddToLayout(QVBoxLayout *layout, int index) {
     group_layout_->addWidget(max_text_.get());
     group_layout_->addWidget(delete_button_.get());
 
-    layout->addLayout(group_layout_.get());
-    layout->addLayout(mods_layout_.get());
+    QLOG_INFO() << "AddLayout1" << group_layout_->count();
+    QLOG_INFO() << "AddLayout2" << layout->count();
+    if (!group_layout_->parent()) {
+        layout->addLayout(group_layout_.get());
+    }
+
+    QLOG_INFO() << "AddLayout2";
+    if (!mods_layout_->parent()) {
+        layout->addLayout(mods_layout_.get());
+    }
+
     if (!mods_filter_) {
         mods_filter_ = std::make_unique<ModsFilter>(mods_layout_.get());
     }
@@ -185,6 +194,9 @@ void GroupsFilter::ClearSignalMapper() {
 
 void GroupsFilter::ClearLayout() {
     QLOG_INFO() << "GroupsFilter::ClearLayout";
+    //QLayoutItem *item;
+    //while ((item = layout_->takeAt(0))) {}
+
     //Util::ClearLayout(layout_.get());
 }
 

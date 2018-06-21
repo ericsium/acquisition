@@ -61,6 +61,7 @@ void SelectedMod::Update() {
 
 void SelectedMod::AddToLayout(QVBoxLayout *layout, int index) {
     layout->addWidget(mod_select_.get());
+    QLOG_INFO() << "SelectedMod: AddToLayout count " << layout->count();
 
     auto minmax = new QHBoxLayout();
 
@@ -213,7 +214,7 @@ void ModsFilter::ClearSignalMapper() {
 
 void ModsFilter::ClearLayout() {
     QLOG_INFO() << "ModsFilter::ClearLayout";
-    //Util::ClearLayout(layout_.get());
+    Util::ClearLayout(layout_.get());
 }
 
 void ModsFilter::Clear() {
